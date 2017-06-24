@@ -1,0 +1,81 @@
+#!/bin/bash
+
+local=$1
+mask=$2
+if [ ! -d "$local" -o ! -f "$mask"  ] ; then
+    echo "Usage: $0 /path/to/images mask.png"
+    if [ ! -d "$local" ] ; then
+        echo "$local does not exist"
+    fi
+    if [ ! -f "$mask" ] ; then
+        echo "$mask does not exist"
+    fi
+    exit
+fi
+
+dir=`dirname $local`
+base=`basename $local`
+total=`ls -1 $dir/$base/*.jpg | wc -l`
+count=0
+start_time=`date +%s`
+
+output_path="$dir/${base}_inpaint/"
+mkdir -p $output_path
+
+for i in `ls -v $dir/$base/*.jpg`; do
+    count=$(($count + 1))
+
+    b=`basename $i .jpg`;
+    echo "$count / $total: $b";
+
+    original_image=$i
+    original_mask=$mask
+    final_output="${output_path}$b.jpg"
+
+    # webp will reduce file sizes
+
+    if [ ! -f "$final_output" ] ; then
+        small_inpainted=`mktemp --suffix '.jpg'`
+
+        # inpaint using a downsampled image, as it much faster and we don't need the quality
+        # https://zonderr.wordpress.com/2011/02/18/about-the-image-stack/ explains how the gmic image stack works and what the [n] references mean
+        # http://gmic.eu/reference.shtml#subsection10 documents the -inpaint options
+        gmic \
+            $original_image \
+            $original_mask \
+            -resize[0,1] 10%,10% \
+            -inpaint_patchmatch[0] [1],3,2,5,5,1,0 \
+            -output[0] $small_inpainted 2>/dev/null
+
+        # combine the downsampled inpainted region back into the original full resolution image
+        convert \
+            $original_image \
+            $small_inpainted -geometry 5660x2830 \
+            $original_mask \
+            -composite $final_output
+
+        # convert drops exif, so add it back from the original file
+        exiftool \
+            -quiet \
+            -ignoreMinorErrors \
+            -overwrite_original \
+            -tagsFromFile $original_image \
+            -XMP-dc:Rights="This work is licensed to the public under the Creative Commons Attribution-ShareAlike license https://creativecommons.org/licenses/by-sa/4.0/" \
+            -xmp:usageterms="This work is licensed to the public under the Creative Commons Attribution-ShareAlike license https://creativecommons.org/licenses/by-sa/4.0/" \
+            -XMP-cc:license="https://creativecommons.org/licenses/by-sa/4.0/" \
+            -XMP-cc:AttributionName="Andrew Harvey" \
+            -XMP-cc:AttributionURL="https://tianjara.net" \
+            $final_output
+
+        rm -f $small_inpainted
+
+        current_time=`date +%s`
+        elapsed_time=$(($current_time - $start_time))
+        remaining_time=$(( ($total - $count) * $elapsed_time / $count ))
+        remaining_time_fmt=` date -d@$remaining_time -u "+%Hh %Mm %Ss"`
+        echo "$remaining_time_fmt remaining"
+    else
+        echo "skipping existing file"
+    fi
+done
+echo "Inpainted in $output_path"
