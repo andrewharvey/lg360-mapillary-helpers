@@ -1,7 +1,7 @@
 #!/bin/bash
 
-local=$1
-mask=$2
+export local=$1
+export mask=$2
 if [ ! -d "$local" -o ! -f "$mask"  ] ; then
     echo "Usage: $0 /path/to/images mask.png"
     if [ ! -d "$local" ] ; then
@@ -13,17 +13,18 @@ if [ ! -d "$local" -o ! -f "$mask"  ] ; then
     exit
 fi
 
-dir=`dirname $local`
-base=`basename $local`
-total=`ls -1 $dir/$base/*.jpg | wc -l`
-count=0
-start_time=`date +%s`
+export dir=`dirname $local`
+export base=`basename $local`
+export total=`ls -1 $dir/$base/*.jpg | wc -l`
+export count=0
+export start_time=`date +%s`
 
-output_path="$dir/${base}_inpaint/"
+export output_path="$dir/${base}_inpaint/"
 mkdir -p $output_path
 
-for i in `ls -v $dir/$base/*.jpg`; do
-    count=$(($count + 1))
+inpaint() {
+    i=$1
+    count=$PARALLEL_SEQ
 
     b=`basename $i .jpg`;
     echo "$count / $total: $b";
@@ -77,5 +78,10 @@ for i in `ls -v $dir/$base/*.jpg`; do
     else
         echo "skipping existing file"
     fi
-done
+}
+
+export -f inpaint
+parallel -j2 inpaint ::: `ls -v $dir/$base/*.jpg` {#}
+
 echo "Inpainted in $output_path"
+echo  "python interpolate_direction.py $output_path"
