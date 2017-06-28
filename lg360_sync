@@ -1,0 +1,19 @@
+#!/bin/bash
+
+name=$1
+if [ -z $name ] ; then
+    echo "Usage: $0 name"
+    exit
+fi
+
+local=~/Pictures/lg360/`date +%Y%m%d`_${name}/
+mkdir "$local"
+
+echo "copy from device"
+cp --update --verbose /run/user/1000/gvfs/mtp*/SD\ card/DCIM/Camera/* $local
+
+echo "removing files from device"
+rm "/run/user/1000/gvfs/mtp*/SD\ card/DCIM/Camera/*"
+
+echo "remove empty (`find $local -type f -size 0 -print | wc -l` of `ls -1 $local | wc -l`)"
+find "$local" -type f -size 0 -delete
