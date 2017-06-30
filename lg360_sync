@@ -12,8 +12,8 @@ mkdir "$local"
 echo "copy from device"
 cp --update --verbose /run/user/1000/gvfs/mtp*/SD\ card/DCIM/Camera/* $local
 
-echo "removing files from device"
-rm "/run/user/1000/gvfs/mtp*/SD\ card/DCIM/Camera/*"
-
 echo "remove empty (`find $local -type f -size 0 -print | wc -l` of `ls -1 $local | wc -l`)"
 find "$local" -type f -size 0 -delete
+
+echo "removing files from device"
+rm /run/user/1000/gvfs/mtp*/SD\ card/DCIM/Camera/*
