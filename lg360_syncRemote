@@ -1,0 +1,23 @@
+#!/bin/sh
+
+dir=`dirname $1`
+base=`basename $1`
+src="$dir/$base"
+
+i=0
+total=`ls -1 "$src"/*.jpg | wc -l`
+
+echo "Compressing locally with lepton"
+for f in "$src"/*.jpg ; do
+    i=$(($i + 1))
+    if [ ! -e "$f.lep" ] ; then
+        nice lepton "$f" "$f.lep" 2>/dev/null
+    fi
+    printf "...$i/$total\r"
+done
+echo ""
+
+echo "rsyncing to remote"
+rsync -v --remove-source-files --progress --info=progress2 "$src"/*.jpg.lep root@remote:/srv/mapillary/stage/
+
+echo "now complete on server"

@@ -24,3 +24,11 @@ Inpaints your 360 images using a mask.
 This will create a new output directory `/path/to/images_inpaint`
 
 Unfortunately the inpainting algorithm is not projection aware, a workaround when only inpainting the "south pole" could be to reproject the image to another projection focusing on the "south pole", do the inpainting, then reproject back. This hasn't been implemented yet.
+
+
+## lg360_syncRemote
+
+If you have a slow uplink, this script will compress your JPEGs using lepton and rsync them to a remote host. If your connection is interrupted rsync can easily be re-run without re-uploading or data loss.
+
+## lg360_syncRemoteComplete
+Once you have rsynced to your remote host, this script will decompress the lep files and upload to Mapillary.

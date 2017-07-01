@@ -1,0 +1,16 @@
+#!/bin/sh
+
+i=0
+total=`ls -1 /srv/mapillary/stage/*.lep | wc -l`
+for f in /srv/mapillary/stage/*.lep ; do
+    i=$(($i +1))
+    b=`basename "$f" ".lep"`
+    d=`dirname "$f"`
+    nice lepton "$f" "$d/$b" 2>/dev/null >/dev/null
+    printf "...$i/$total\r"
+    rm -f "$f"
+done
+
+
+/srv/mapillary/upload_mapillary /srv/mapillary/stage/
+rm -rf /srv/mapillary/stage/*
