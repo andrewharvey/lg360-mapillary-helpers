@@ -61,6 +61,7 @@ inpaint() {
             -ignoreMinorErrors \
             -overwrite_original \
             -tagsFromFile $original_image \
+            -ThumbnailImage= \
             -XMP-dc:Rights="This work is licensed to the public under the Creative Commons Attribution-ShareAlike license https://creativecommons.org/licenses/by-sa/4.0/" \
             -xmp:usageterms="This work is licensed to the public under the Creative Commons Attribution-ShareAlike license https://creativecommons.org/licenses/by-sa/4.0/" \
             -XMP-cc:license="https://creativecommons.org/licenses/by-sa/4.0/" \
