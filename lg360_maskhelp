@@ -6,13 +6,17 @@ if [ ! -d $local ] ; then
     exit
 fi
 
-mod=150
+mod=120
 count_using=`find $local -type f -print | awk "!(NR%$mod)" | wc -l`
 count_total=`find $local -type f -print | wc -l`
 echo "Averaging $count_using of $count_total (mod $mod)"
 
 tmp=`mktemp --suffix '.jpg'`
 find $local -type f -print | awk "!(NR%$mod)" | parallel --xargs convert {} -average "$tmp"
-echo "In GIMP create a black/white mask (white areas to inpaint) and save this as a mask.png file"
-gimp "$tmp" 2>/dev/null >/dev/null
+if [ $? -eq 0 ] ; then
+    echo "In GIMP create a black/white mask (white areas to inpaint) and save this as a mask.png file"
+    gimp "$tmp" 2>/dev/null >/dev/null
+else
+    echo "Error creating average image"
+fi
 rm -f "$tmp"
