@@ -45,7 +45,7 @@ inpaint() {
             $original_image \
             $original_mask \
             -resize[0,1] 10%,10% \
-            -inpaint_patchmatch[0] [1],3,2,5,5,1,0 \
+            -inpaint_matchpatch[0] [1],3,2,5,5,1,0 \
             -output[0] $small_inpainted 2>/dev/null
 
         # combine the downsampled inpainted region back into the original full resolution image
